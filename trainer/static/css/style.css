@@ -626,23 +626,18 @@ input[type="checkbox"] {
         box-shadow: 0 0 2px #8e24aa;
     }
 
-    @keyframes glowBtn {
-        from {
-            box-shadow: 0 0 2px #8e24aa;
-        }
-
-        to {
-            box-shadow: 0 0 8px #8e24aa;
-        }
+    to {
+        box-shadow: 0 0 8px #8e24aa;
     }
+}
 
-    .full-screen-overlay {
-        display: none;
-        position: fixed;
-        /* Fixed is better than absolute for full screen prevention of scroll */
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 100;
-    }
+.full-screen-overlay {
+    display: none;
+    position: fixed;
+    /* Fixed is better than absolute for full screen prevention of scroll */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+}
