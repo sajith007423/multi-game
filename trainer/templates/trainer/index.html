@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Schulte Trainer</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/kaboom@3000.0.1/dist/kaboom.js"></script>
+    <link rel="icon"
+        href="data:image/x-icon;base64,AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA">
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="game-title">Pixel Schulte Trainer</h1>
+
+        <!-- Main Menu (Settings + Memory Shuffler) -->
+        <div id="main-menu" class="screen active">
+            <!-- Main Game Settings Panel -->
+            <div class="panel" style="max-width: 900px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin:0;">Game Settings</h2>
+                    <div>
+                        <select id="custom-game-mode"
+                            style="background: #333; color: white; border: 1px solid #555; padding: 5px;">
+
+                            <optgroup label="Brain Games">
+                                <option value="standard">Mode: Schulte (Classic)</option>
+                                <option value="schulte_mem">Mode: Schulte (Memory)</option>
+                                <option value="memory">Mode: Memory Match</option>
+                                <option value="match3">Mode: Match 3</option>
+                                <option value="whack">Mode: Whack-a-Mole</option>
+                                <option value="pattern">Mode: Pattern Recall</option>
+                                <option value="chimp">Mode: Chimp Test</option>
+                                <option value="odd">Mode: Odd One Out</option>
+                                <option value="stroop">Mode: Stroop Challenge</option>
+                                <option value="math">Mode: Math Matrix</option>
+                                <option value="greenlight">Mode: Green Light</option>
+                            </optgroup>
+                            <optgroup label="Fun Games">
+                                <option value="rpg_battle">Mode: RPG Decision Battle</option>
+                                <option value="gauntlet">Mode: Finger Gauntlet</option>
+                                <option value="flappy">Mode: Flappy Icon</option>
+                            </optgroup>
+
+                        </select>
+                        <input type="number" id="target-score" value="1000" min="100" step="100"
+                            style="width: 80px; background: #333; color: white; border: 1px solid #555; padding: 5px; margin-left: 10px; display: none;"
+                            placeholder="Target Score">
+                    </div>
+                </div>
+
+                <!-- Global Controls (Category & Size) -->
+                <div class="control-row" style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px;">
+                    <div id="setting-category" class="control-group" style="flex: 1;">
+                        <label style="font-size: 0.9em; color: #aaa;">Category</label>
+                        <div class="category-selector" style="margin-top: 5px;">
+                            <button class="cat-btn active" data-cat="numbers">123</button>
+                            <button class="cat-btn" data-cat="alphabet">ABC</button>
+                            <button class="cat-btn" data-cat="animals">Animals</button>
+                            <button class="cat-btn" data-cat="rpg">RPG</button>
+                            <button class="cat-btn" data-cat="robots">Robots</button>
+                            <button class="cat-btn" data-cat="characters">Chars</button>
+                            <button class="cat-btn" data-cat="chinese">Chi</button>
+                            <button class="cat-btn" data-cat="norse">Norse</button>
+                            <button class="cat-btn" data-cat="greek">Greek</button>
+                        </div>
+                        <div style="margin-top: 5px; font-size: 0.75em; color: #888;">
+                            <input type="checkbox" id="multi-cat-check" style="vertical-align: middle;"> <label
+                                for="multi-cat-check">Mix Categories</label>
+                        </div>
+                    </div>
+
+                    <div id="setting-size" class="control-group" style="flex: 0 0 auto;">
+                        <label style="font-size: 0.9em; color: #aaa;">Grid Size</label>
+                        <div class="size-selector" style="margin-top: 5px;">
+                            <button class="size-btn" data-size="2">2x2</button>
+                            <button class="size-btn" data-size="3">3x3</button>
+                            <button class="size-btn active" data-size="4">4x4</button>
+                            <button class="size-btn" data-size="5">5x5</button>
+                            <button class="size-btn" data-size="6">6x6</button>
+                            <button class="size-btn" data-size="8">8x8</button>
+                            <button class="size-btn" data-size="10">10x10</button>
+                        </div>
+                        <div id="setting-shuffle" style="margin-top: 10px; font-size: 0.8em; color: #ccc;">
+                            <label><input type="checkbox" id="shuffle-check" style="vertical-align: middle;"> Shuffle on
+                                Click</label>
+                        </div>
+                    </div>
+                </div>
+
+                <hr style="border-color: #444; margin-bottom: 20px;">
+
+                <!-- Advanced Editor & Pool -->
+                <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+                    <!-- Left: Grid Editor -->
+                    <div id="setting-grid-editor" style="flex: 1; min-width: 300px;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <h3>Grid Shape</h3>
+                            <button id="reset-grid-btn" class="small-btn">Reset</button>
+                        </div>
+
+                        <!-- Shape Presets -->
+                        <div class="shape-presets"
+                            style="display: flex; gap: 5px; justify-content: center; margin-bottom: 10px;">
+                            <button class="small-btn" data-shape="full" title="Full Grid">Full</button>
+                            <button class="small-btn" data-shape="pyramid" title="Pyramid">▲</button>
+                            <button class="small-btn" data-shape="diamond" title="Diamond">◆</button>
+                            <button class="small-btn" data-shape="ring" title="Ring">○</button>
+                            <button class="small-btn" data-shape="checker" title="Checkers">▦</button>
+                        </div>
+                        <div id="custom-grid-editor" class="game-grid" style="margin: 0 auto;"></div>
+                    </div>
+
+                    <!-- Right: Icon Pool -->
+                    <div id="icon-panel-container" style="flex: 1; min-width: 300px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3>Icons <small style="font-size:0.6em; color:#aaa;">(Selected: <span
+                                        id="sel-icon-count">0</span> / Req: <span id="req-icon-count">0</span>)</small>
+                            </h3>
+                            <button id="random-select-btn"
+                                style="padding: 2px 8px; font-size: 10px; background: #e94560; border: none; color: white; cursor: pointer;">Randomize</button>
+                        </div>
+                        <div id="custom-icon-pool" class="icon-pool"
+                            style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; max-height: 400px; overflow-y: auto; margin-top: 5px;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group" style="text-align: center; margin-top: 20px;">
+                    <button id="custom-start-btn" class="action-btn">Start Game</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Memorize Screen -->
+        <div id="memorize-screen" class="screen">
+            <div class="panel">
+                <h2>Memorize the Sequence</h2>
+                <div id="sequence-display" class="sequence-grid">
+                    <!-- Sequence items injected here -->
+                </div>
+                <p>Remember this order!</p>
+                <button id="play-btn" class="action-btn">I'm Ready!</button>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <div class="game-header">
+                <div class="timer">Time: <span id="time-display">0.00</span>s</div>
+                <div class="lives" style="display:none; color: #ff4444; font-weight: bold;">Lives: <span
+                        id="lives-display">5</span></div>
+                <div class="target">Next: <div id="next-target-icon"></div>
+                </div>
+            </div>
+            <div id="game-grid" class="game-grid">
+                <!-- Game items injected here -->
+            </div>
+
+
+            <!-- Finger Gauntlet Elements (Pygame WASM) -->
+            <!-- Finger Gauntlet Elements (Kaboom.js) -->
+            <div id="gauntlet-container"
+                style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; background: #000;">
+                <button onclick="closeGauntlet()"
+                    style="position: absolute; top: 10px; right: 10px; z-index: 200; background: #f00; color: #fff; border: 2px solid #fff; padding: 5px 10px; cursor: pointer; font-family: monospace;">EXIT</button>
+            </div>
+
+            <!-- Flappy Icon Elements (Kaboom.js) -->
+            <div id="flappy-container"
+                style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; background: #70c5ce;">
+                <button onclick="closeFlappy()"
+                    style="position: absolute; top: 10px; right: 10px; z-index: 200; background: #f00; color: #fff; border: 2px solid #fff; padding: 5px 10px; cursor: pointer; font-family: monospace;">EXIT</button>
+            </div>
+
+            <div id="gauntlet-overlay" style="display: none;"></div>
+
+            <!-- Player HUD -->
+            <div id="rpg-player-hud" class="poke-hud player-hud" style="display: none;">
+                <div class="poke-name-row">
+                    <span id="player-hud-name" class="poke-name">HERO</span>
+                    <span id="player-hud-lvl" class="poke-lvl">Lv50</span>
+                </div>
+                <div class="poke-hp-container">
+                    <div id="player-hud-hp-bar" class="poke-hp-bar" style="width: 100%;"></div>
+                </div>
+                <div style="text-align: right; font-size: 8px; margin-top: 2px;">
+                    <span id="player-hud-hp-text">100/100</span>
+                </div>
+                <!-- MP Bar -->
+                <div class="poke-hp-container" style="margin-top: 2px; height: 4px;">
+                    <div id="player-hud-mp-bar" class="poke-hp-bar" style="width: 100%; background: #2196f3;"></div>
+                </div>
+                <div style="text-align: right; font-size: 8px; color: #2196f3;">
+                    <span id="player-hud-mp-text">50/50</span>
+                </div>
+            </div>
+
+            <!-- Hero Sprite -->
+            <div id="rpg-player-sprite" class="player-sprite" style="display: none;"></div>
+
+            <!-- RPG Battle Log -->
+            <div id="rpg-battle-log" class="poke-textbox" style="display: none;">
+                <div class="log-content" style="flex: 1;">
+                    <p id="rpg-log-text">A wild enemy appeared!</p>
+                </div>
+                <!-- Action Menu -->
+                <div id="rpg-action-menu" class="battle-menu">
+                    <button class="battle-btn" onclick="triggerRpgAction('impute')">IMPUTE</button>
+                    <button class="battle-btn" onclick="triggerRpgAction('recover')">RECOVER</button>
+                    <button id="btn-channel" class="battle-btn" onclick="triggerRpgAction('channel')">CHANNEL</button>
+                    <button class="battle-btn" onclick="triggerRpgAction('smite')">SMITE</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="screen">
+            <div class="panel">
+                <h2>Complete!</h2>
+                <p class="final-time">Your Time: <span id="final-time">0.00</span>s</p>
+                <button id="restart-btn" class="action-btn">Play Again</button>
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="gameover-screen" class="screen">
+            <div class="panel" style="border-color: #ff4444;">
+                <h2 style="color: #ff4444;">Game Over!</h2>
+                <p>You clicked the wrong icon.</p>
+                <button id="retry-btn" class="action-btn" style="background: #ff4444;">Try Again</button>
+            </div>
+        </div>
+
+
+    </div>
+
+    <script src="{% static 'js/game.js' %}"></script>
+</body>
+
+</html>
