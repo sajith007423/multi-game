@@ -178,38 +178,63 @@ input[type="checkbox"] {
 @media (max-width: 600px) {
     .container {
         padding: 5px;
+        width: 100%;
+        max-width: 100%;
     }
 
     .game-grid {
-        gap: 2px;
+        gap: 5px;
     }
 
     .icon-card {
         width: 100%;
+        min-width: 40px;
+        /* Prevent too small */
         height: auto;
         aspect-ratio: 1;
         border-width: 1px;
     }
 
+    /* Adjust Icon Size Variable for Grid calculations if needed */
+    :root {
+        --icon-size: 48px;
+    }
+
     .game-title {
-        font-size: 16px;
-        margin-bottom: 10px;
+        font-size: 18px;
+        margin-bottom: 15px;
     }
 
     .cat-btn,
     .size-btn {
-        padding: 6px 8px;
-        font-size: 8px;
-        margin: 2px;
+        padding: 10px 12px;
+        /* larger touch target */
+        font-size: 10px;
+        margin: 3px;
     }
 
     .panel {
-        padding: 10px;
-        width: 95%;
+        padding: 15px;
+        width: 100%;
+        box-sizing: border-box;
+        /* Critical for padding */
+        border-right: none;
+        border-left: none;
+        border-radius: 0;
     }
 
     .control-group {
-        margin: 10px 0;
+        margin: 15px 0;
+    }
+
+    /* Input/Select styling for mobile */
+    select,
+    input {
+        font-size: 16px;
+        /* Stop iOS zoom */
+        padding: 8px;
+        width: 100%;
+        max-width: 100%;
     }
 }
 
@@ -601,7 +626,23 @@ input[type="checkbox"] {
         box-shadow: 0 0 2px #8e24aa;
     }
 
-    to {
-        box-shadow: 0 0 8px #8e24aa;
+    @keyframes glowBtn {
+        from {
+            box-shadow: 0 0 2px #8e24aa;
+        }
+
+        to {
+            box-shadow: 0 0 8px #8e24aa;
+        }
     }
-}
+
+    .full-screen-overlay {
+        display: none;
+        position: fixed;
+        /* Fixed is better than absolute for full screen prevention of scroll */
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 100;
+    }
