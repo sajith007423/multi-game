@@ -3964,56 +3964,126 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderSearchLevel() {
-        // Dynamic Grid Size based on score?
-        // Level 1: 5x5. Level 10: 10x10.
+        // Dynamic Grid Size based on score
         const size = Math.min(10, 5 + Math.floor(searchScore / 3));
         displays.gameGrid.dataset.size = size;
 
         let templateCols = `repeat(${size}, 1fr)`;
+        // Force square-ish aspect if possible, but 1fr is fine for responsive
         displays.gameGrid.style.gridTemplateColumns = templateCols;
-
-        // Assets
-        // Option A: Rotated Ts.
-        // Option B: Color difference.
-        // Let's go with Shape+Rotation using CSS.
 
         const total = size * size;
         searchTargetIndex = Math.floor(Math.random() * total);
 
-        displays.gameGrid.innerHTML = '';
+        // --- Determine Assets (Text vs Custom Icons) ---
+        let useIcons = false;
+        let targetContent = { type: 'text', content: 'R' };
+        let distractorContent = { type: 'text', content: 'P' };
 
-        // Distractor: "L" rotated. Target: "T".
-        // Or Distractor: "q". Target: "p".
+        // Resolve Custom Icons if available
+        if (customSelectedIcons.length >= 2) {
+            useIcons = true;
+
+            const resolve = (pIdx) => {
+                let rc = 0;
+                for (const cat of activeCategories) {
+                    const limit = (cat === 'numbers' || cat === 'alphabet') ? 100 : 16; // Standard limits
+                    if (pIdx < rc + limit) return getDirectContent(cat, pIdx - rc);
+                    rc += limit;
+                }
+                return { type: 'text', content: '?' };
+            };
+
+            // Pick two distinct icons from selection
+            const s1 = customSelectedIcons[Math.floor(Math.random() * customSelectedIcons.length)];
+            let s2 = s1;
+            // Try to find a different one
+            let attempts = 0;
+            while (s2 === s1 && attempts < 10) {
+                s2 = customSelectedIcons[Math.floor(Math.random() * customSelectedIcons.length)];
+                attempts++;
+            }
+            // If still same (e.g. only 1 selected), logic gracefully degrades to finding same image (impossible?), 
+            // but we check length >= 2 above.
+
+            targetContent = resolve(s1);
+            distractorContent = resolve(s2);
+        }
+
+        displays.gameGrid.innerHTML = '';
 
         for (let i = 0; i < total; i++) {
             const div = document.createElement('div');
+            div.className = 'icon-card';
+            // Override some styles for dense grid
             div.style.background = '#222';
-            div.style.border = '1px solid #333';
-            div.style.display = 'flex';
-            div.style.justifyContent = 'center';
-            div.style.alignItems = 'center';
-            div.style.fontSize = '24px';
-            div.style.cursor = 'pointer';
+            div.style.padding = '2px';
 
-            const span = document.createElement('span');
+            const isTarget = (i === searchTargetIndex);
+            const data = isTarget ? targetContent : distractorContent;
 
-            // Logic
-            if (i === searchTargetIndex) {
-                // Target
-                span.innerText = 'R'; // Find the R
+            if (data.type === 'text') {
+                const span = document.createElement('span');
+                span.className = 'text-icon';
+                span.innerText = data.content;
+                span.style.fontSize = (size > 8) ? '16px' : '24px'; // Scale text
+
+                if (!useIcons && !isTarget) {
+                    // Distractor Rotation for default R/P
+                    if (Math.random() > 0.5) span.style.transform = 'rotate(180deg)';
+                }
+                div.appendChild(span);
             } else {
-                // Distractor
-                span.innerText = 'P'; // Among the Ps
-                // Add rotation to make it harder?
-                if (Math.random() > 0.5) span.style.transform = 'rotate(180deg)';
+                const img = document.createElement('div');
+                img.style.cssText = `
+                    background-image: url('${data.content}'); 
+                    background-size: contain;
+                    background-repeat: no-repeat;
+                    background-position: center;
+                    width: 100%;
+                    height: 100%;
+                `;
+                div.appendChild(img);
             }
 
-            div.appendChild(span);
             div.onclick = () => handleSearchClick(i);
             displays.gameGrid.appendChild(div);
         }
 
-        displays.nextTarget.innerHTML = `FIND 'R' | Found: ${searchScore}`;
+        // Update Instruction / HUD
+        displays.nextTarget.innerHTML = '';
+
+        const instr = document.createElement('div');
+        instr.style.display = 'flex';
+        instr.style.alignItems = 'center';
+        instr.style.justifyContent = 'center';
+        instr.style.gap = '10px';
+
+        const label = document.createElement('span');
+        label.innerText = "FIND:";
+        instr.appendChild(label);
+
+        // Preview Target
+        const preview = document.createElement('div');
+        preview.style.width = '32px'; preview.style.height = '32px';
+        preview.style.display = 'flex'; preview.style.alignItems = 'center'; preview.style.justifyContent = 'center';
+
+        if (targetContent.type === 'text') {
+            preview.innerText = targetContent.content;
+            preview.className = 'text-icon';
+            preview.style.fontSize = '20px';
+        } else {
+            preview.style.backgroundImage = `url('${targetContent.content}')`;
+            preview.style.backgroundSize = 'contain';
+            preview.style.backgroundRepeat = 'no-repeat';
+        }
+        instr.appendChild(preview);
+
+        const scoreSpan = document.createElement('span');
+        scoreSpan.innerText = ` | Found: ${searchScore}`;
+        instr.appendChild(scoreSpan);
+
+        displays.nextTarget.appendChild(instr);
     }
 
     function handleSearchClick(i) {
