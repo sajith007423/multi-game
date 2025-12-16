@@ -17,7 +17,13 @@
 
 <body>
     <div class="container">
-        <h1 class="game-title">Pixel Schulte Trainer</h1>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1 class="game-title" style="margin:0;">Pixel Schulte Trainer</h1>
+            <div>
+                <button id="theme-btn" class="small-btn" onclick="toggleTheme()">🌙/☀️</button>
+                <!-- <button id="login-btn" class="small-btn" onclick="showLogin()">Login</button> -->
+            </div>
+        </div>
 
         <!-- Main Menu (Settings + Memory Shuffler) -->
         <div id="main-menu" class="screen active">
@@ -43,6 +49,10 @@
                                 <option value="greenlight">Mode: Green Light</option>
                                 <option value="taskswitch">Mode: Task Switching</option>
                                 <option value="search">Mode: Visual Search</option>
+                                <option value="matrix">Mode: Matrix Recall</option>
+                                <option value="rotation">Mode: Spatial Rotation</option>
+                                <option value="hanoi">Mode: Tower of Hanoi</option>
+                                <option value="nback">Mode: Dual N-Back</option>
                             </optgroup>
                             <optgroup label="Fun Games">
                                 <option value="rpg_battle">Mode: RPG Decision Battle</option>
@@ -255,7 +265,30 @@
 
     </div>
 
+    <script src="{% static 'js/api.js' %}"></script>
+    <script src="{% static 'js/audio.js' %}"></script>
     <script src="{% static 'js/game.js' %}"></script>
+    <script src="{% static 'js/games/matrix.js' %}"></script>
+    <script src="{% static 'js/games/rotation.js' %}"></script>
+    <script src="{% static 'js/games/gravity.js' %}"></script>
+    <script src="{% static 'js/games/hanoi.js' %}"></script>
+    <script src="{% static 'js/games/nback.js' %}"></script>
+    <script src="{% static 'js/games/rpg.js' %}"></script>
+    <script src="{% static 'js/games/match3.js' %}"></script>
+    <script src="{% static 'js/games/memory.js' %}"></script>
+    <script src="{% static 'js/games/whack.js' %}"></script>
+    <script src="{% static 'js/games/pattern.js' %}"></script>
+    <script src="{% static 'js/games/chimp.js' %}"></script>
+    <script src="{% static 'js/games/odd.js' %}"></script>
+    <script src="{% static 'js/games/stroop.js' %}"></script>
+    <script src="{% static 'js/games/math_game.js' %}"></script>
+    <script src="{% static 'js/games/green_light.js' %}"></script>
+    <script src="{% static 'js/games/gauntlet.js' %}"></script>
+    <script src="{% static 'js/games/flappy.js' %}"></script>
+    <script src="{% static 'js/games/task_switching.js' %}"></script>
+    <script src="{% static 'js/games/visual_search.js' %}"></script>
+    <script src="{% static 'js/games/schulte_custom.js' %}"></script>
+    <script src="{% static 'js/games/schulte_mem.js' %}"></script>
     <script>
     </script>
 </body>

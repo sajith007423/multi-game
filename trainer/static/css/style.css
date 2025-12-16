@@ -7,6 +7,15 @@
     --icon-size: 64px;
 }
 
+body.light-theme {
+    --bg-color: #f0f2f5;
+    --panel-bg: #ffffff;
+    --accent: #2e86de; /* Softer blue for light mode */
+    --text: #2f3542;
+    --grid-gap: 10px;
+    --icon-size: 64px;
+}
+
 body {
     background-color: var(--bg-color);
     color: var(--text);
