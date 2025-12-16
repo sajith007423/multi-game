@@ -70,6 +70,25 @@ document.addEventListener('DOMContentLoaded', () => {
     let greenSpawnInterval = null;
     let greenActiveTimeouts = {};
 
+    // Dual N-Back State
+    let nBackLevel = 2; // N=2 default
+    let nBackHistory = []; // { pos: 4, char: 'A' }
+    let nBackIndex = 0;
+    let nBackScore = 0;
+    let nBackActive = false;
+
+    // Task Switching State
+    let taskScore = 0; // Correct answers
+    let taskLives = 3;
+    let taskRule = 'number'; // 'number' (Even/Odd) or 'letter' (Vowel/Consonant)
+    let taskCurrentCard = null;
+
+    // Visual Search State
+    let searchScore = 0;
+    let searchTargetIndex = -1;
+    let searchTimeLimit = 60; // 60s Time Attack
+
+
     // RPG Battle State
     let rpgHero = null; // { idx, hp, maxHp, attack }
     let rpgEnemies = {}; // map cellIndex -> { hp, maxHp, name, hue }
@@ -289,6 +308,16 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (currentMode === 'greenlight') {
                 isCustomMode = true;
                 startGreenGame();
+            } else if (currentMode === 'nback') {
+                isCustomMode = true;
+                startDualNBackGame();
+            } else if (currentMode === 'taskswitch') {
+                isCustomMode = true;
+                startTaskSwitchingGame();
+            } else if (currentMode === 'search') {
+                isCustomMode = true;
+                startVisualSearchGame();
+
             } else if (currentMode === 'rpg_battle') {
                 if (customSelectedIcons.length === 0) return alert("Select at least 1 icon (Your Hero)!");
                 isCustomMode = true;
@@ -544,6 +573,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (shapeContainer) shapeContainer.style.display = 'flex';
                 if (gridRender) gridRender.style.display = 'grid';
             }
+        } else if (mode === 'rag_builder') {
+            // Hide almost everything
+            if (setCategory) setCategory.style.display = 'none';
+            if (setShuffle) setShuffle.style.display = 'none';
+            if (setGridEditor) setGridEditor.style.display = 'none';
+            if (setIconPanel) setIconPanel.style.display = 'none';
+            // Show RAG Builder
+            const ragContainer = document.getElementById('rag-builder-container');
+            if (ragContainer) ragContainer.style.display = 'block';
+            // Hide Game Grid manually if visible
+            displays.gameGrid.style.display = 'none';
         }
 
         // --- Requirement Logic ---
@@ -2395,6 +2435,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function switchScreen(screenName) {
+        // Cleanup
+        if (timerInterval) clearInterval(timerInterval);
+        nBackActive = false;
+
         Object.values(screens).forEach(s => {
             if (s) s.classList.remove('active');
         });
@@ -3603,4 +3647,388 @@ document.addEventListener('DOMContentLoaded', () => {
 
         endGame(false);
     };
+
+
+    // --- Dual N-Back Logic ---
+    function startDualNBackGame() {
+        nBackLevel = 2;
+        nBackHistory = [];
+        nBackIndex = 0;
+        nBackScore = 0;
+        nBackActive = true;
+
+        // Setup Grid (3x3 forced)
+        gridSize = 3;
+        const count = 9;
+
+        // Reset and clear grid
+        displays.gameGrid.dataset.size = 3;
+        displays.gameGrid.style.gridTemplateColumns = `repeat(3, 1fr)`;
+        displays.gameGrid.innerHTML = '';
+
+        for (let i = 0; i < 9; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'icon-card';
+            cell.style.background = '#222';
+            cell.dataset.id = i;
+            displays.gameGrid.appendChild(cell);
+        }
+
+        // Add Controls UI below grid (clean up previous if any)
+        const oldControls = document.getElementById('nback-controls');
+        if (oldControls) oldControls.remove();
+
+        const ctrlDiv = document.createElement('div');
+        ctrlDiv.id = 'nback-controls';
+        ctrlDiv.style.marginTop = '20px';
+        ctrlDiv.style.display = 'flex';
+        ctrlDiv.style.gap = '20px';
+        ctrlDiv.style.justifyContent = 'center';
+        ctrlDiv.innerHTML = `
+            <button id="btn-pos-match" class="action-btn" style="background:#444;">Position Match (A)</button>
+            <button id="btn-audio-match" class="action-btn" style="background:#444;">Audio Match (L)</button>
+        `;
+        displays.gameGrid.parentNode.appendChild(ctrlDiv);
+
+        // Bind Events
+        // Note: Simple flag tracking for current turn input
+        let posClicked = false;
+        let audioClicked = false;
+
+        document.getElementById('btn-pos-match').onclick = () => { posClicked = true; checkNBackInput(true, false); };
+        document.getElementById('btn-audio-match').onclick = () => { audioClicked = true; checkNBackInput(false, true); };
+
+        // Keyboard Support
+        window.onkeydown = (e) => {
+            if (!nBackActive) return;
+            if (e.key.toLowerCase() === 'a') { posClicked = true; checkNBackInput(true, false); }
+            if (e.key.toLowerCase() === 'l') { audioClicked = true; checkNBackInput(false, true); }
+        };
+
+        const timerContainer = displays.time.parentElement;
+        timerContainer.innerHTML = `N-Back Level: <span style="color:#0f0;">${nBackLevel}</span> | Score: <span id="nback-score">0</span>`;
+
+        displays.nextTarget.innerHTML = '<span style="font-size:10px; color:#aaa;">Listen & Watch</span>';
+
+        switchScreen('game');
+        runNBackLoop();
+    }
+
+    function runNBackLoop() {
+        if (!nBackActive) return;
+
+        // 1. Generate new stimulus
+        const pos = Math.floor(Math.random() * 9);
+        const letters = ['C', 'H', 'L', 'Q', 'R', 'S', 'T', 'K'];
+        // Bias towards match? 
+        // 30% chance of position match, 30% audio, independent.
+        // Actually, pure random is fine for training, but ensuring some matches helps keep it engaging.
+        // For simplicity: Random.
+
+        const char = letters[Math.floor(Math.random() * letters.length)];
+
+        nBackHistory.push({ pos, char });
+
+        // 2. Visual Stimulus
+        const cells = displays.gameGrid.children;
+        for (let c of cells) c.style.background = '#222';
+
+        if (cells[pos]) {
+            cells[pos].style.background = '#00bdff';
+        }
+
+        // 3. Audio Stimulus
+        const u = new SpeechSynthesisUtterance(char);
+        u.rate = 1.5;
+        window.speechSynthesis.speak(u);
+
+        // 4. Update Score UI (for feedback)
+        const btnPos = document.getElementById('btn-pos-match');
+        const btnAud = document.getElementById('btn-audio-match');
+        if (btnPos) btnPos.style.background = '#444'; // Reset colors
+        if (btnAud) btnAud.style.background = '#444';
+
+        // 5. Wait for next turn
+        // Interval: 2.5s
+        setTimeout(() => {
+            if (!nBackActive) return;
+            // Clear Visual
+            if (cells[pos]) cells[pos].style.background = '#222';
+
+            // Verify Missed Matches (if user DIDN'T click but should have)
+            const targetIdx = nBackHistory.length - 1 - nBackLevel;
+            if (targetIdx >= 0) {
+                const target = nBackHistory[targetIdx];
+                const current = nBackHistory[nBackHistory.length - 1];
+
+                // If match existed and user didn't click -> Miss
+                // Current logic handles clicks immediately. 
+                // We just proceed.
+            }
+
+            // Loop
+            setTimeout(runNBackLoop, 500);
+        }, 2000);
+    }
+
+    function checkNBackInput(checkPos, checkAudio) {
+        const idx = nBackHistory.length - 1;
+        const targetIdx = idx - nBackLevel;
+        if (targetIdx < 0) return; // Warmup phase
+
+        const current = nBackHistory[idx];
+        const target = nBackHistory[targetIdx];
+
+        const btnPos = document.getElementById('btn-pos-match');
+        const btnAud = document.getElementById('btn-audio-match');
+
+        if (checkPos) {
+            if (current.pos === target.pos) {
+                nBackScore += 10;
+                if (btnPos) btnPos.style.background = '#0f0';
+            } else {
+                nBackScore -= 5;
+                if (btnPos) btnPos.style.background = '#f00';
+            }
+        }
+
+        if (checkAudio) {
+            if (current.char === target.char) {
+                nBackScore += 10;
+                if (btnAud) btnAud.style.background = '#0f0';
+            } else {
+                nBackScore -= 5;
+                if (btnAud) btnAud.style.background = '#f00';
+            }
+        }
+
+        const sEl = document.getElementById('nback-score');
+        if (sEl) sEl.innerText = nBackScore;
+    }
+
+
+    // --- Task Switching Logic ---
+    function startTaskSwitchingGame() {
+        taskScore = 0;
+        taskLives = 3;
+        taskRule = 'number';
+
+        displays.gameGrid.innerHTML = '';
+        displays.gameGrid.style.display = 'flex';
+        displays.gameGrid.style.flexDirection = 'column';
+        displays.gameGrid.style.alignItems = 'center';
+        displays.gameGrid.style.justifyContent = 'center';
+
+        // Rule Header
+        const ruleHeader = document.createElement('h2');
+        ruleHeader.id = 'task-rule-header';
+        ruleHeader.style.color = '#ffeb3b';
+        ruleHeader.style.marginBottom = '20px';
+        ruleHeader.innerText = "RULE: NUMBERS (Even vs Odd)";
+        displays.gameGrid.appendChild(ruleHeader);
+
+        // Card Container
+        const card = document.createElement('div');
+        card.id = 'task-card';
+        card.style.width = '150px';
+        card.style.height = '200px';
+        card.style.background = '#fff';
+        card.style.color = '#000';
+        card.style.display = 'flex';
+        card.style.flexDirection = 'column';
+        card.style.justifyContent = 'center';
+        card.style.alignItems = 'center';
+        card.style.fontSize = '48px';
+        card.style.fontWeight = 'bold';
+        card.style.borderRadius = '10px';
+        card.innerText = "5 E";
+        displays.gameGrid.appendChild(card);
+
+        // Buttons
+        const btnsDiv = document.createElement('div');
+        btnsDiv.style.marginTop = '30px';
+        btnsDiv.style.display = 'flex';
+        btnsDiv.style.gap = '50px';
+
+        const btnL = document.createElement('button');
+        btnL.className = 'action-btn';
+        btnL.id = 'task-btn-left';
+        btnL.innerText = "Even / Vowel";
+        btnL.onclick = () => handleTaskInput('left');
+
+        const btnR = document.createElement('button');
+        btnR.className = 'action-btn';
+        btnR.id = 'task-btn-right';
+        btnR.innerText = "Odd / Consonant";
+        btnR.onclick = () => handleTaskInput('right');
+
+        btnsDiv.appendChild(btnL);
+        btnsDiv.appendChild(btnR);
+        displays.gameGrid.appendChild(btnsDiv);
+
+        window.onkeydown = (e) => {
+            if (e.key === 'ArrowLeft') handleTaskInput('left');
+            if (e.key === 'ArrowRight') handleTaskInput('right');
+        };
+
+        nextTaskTurn();
+        switchScreen('game');
+    }
+
+    function nextTaskTurn() {
+        // Randomly switch rule (40% chance)
+        if (Math.random() < 0.4) {
+            taskRule = taskRule === 'number' ? 'letter' : 'number';
+        }
+
+        // Update UI
+        const h = document.getElementById('task-rule-header');
+        const bL = document.getElementById('task-btn-left');
+        const bR = document.getElementById('task-btn-right');
+
+        if (taskRule === 'number') {
+            h.innerText = "RULE: NUMBERS";
+            bL.innerText = "Even (Left)";
+            bR.innerText = "Odd (Right)";
+        } else {
+            h.innerText = "RULE: LETTERS";
+            bL.innerText = "Vowel (Left)";
+            bR.innerText = "Consonant (Right)";
+        }
+
+        // Generate Content
+        // Number: 1-9
+        // Letter: A, E, I, U vs B, C, D, G, H, K, M, P
+        const num = Math.floor(Math.random() * 9) + 1;
+        const vowels = ['A', 'E', 'I', 'U'];
+        const consts = ['B', 'C', 'D', 'G', 'H', 'K', 'M', 'P', 'T'];
+        const isVowel = Math.random() > 0.5;
+        const char = isVowel ? vowels[Math.floor(Math.random() * vowels.length)] : consts[Math.floor(Math.random() * consts.length)];
+
+        taskCurrentCard = { num, char };
+
+        const card = document.getElementById('task-card');
+        card.innerText = `${num} ${char}`;
+
+        // Timer/Score update
+        displays.time.innerText = taskScore;
+    }
+
+    function handleTaskInput(side) {
+        let correct = false;
+
+        if (taskRule === 'number') {
+            const isEven = (taskCurrentCard.num % 2 === 0);
+            if (isEven && side === 'left') correct = true;
+            if (!isEven && side === 'right') correct = true;
+        } else {
+            const vowels = ['A', 'E', 'I', 'U'];
+            const isVowel = vowels.includes(taskCurrentCard.char);
+            if (isVowel && side === 'left') correct = true;
+            if (!isVowel && side === 'right') correct = true;
+        }
+
+        if (correct) {
+            taskScore++;
+            nextTaskTurn();
+        } else {
+            taskLives--;
+            document.body.style.backgroundColor = '#500';
+            setTimeout(() => { document.body.style.backgroundColor = ''; }, 100);
+            if (taskLives <= 0) endGame(false);
+        }
+        displays.livesDisplay.innerText = taskLives;
+    }
+
+
+    // --- Visual Search Logic ---
+    function startVisualSearchGame() {
+        searchScore = 0;
+        searchTimeLimit = 60;
+
+        startTime = Date.now();
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            const elapsed = (Date.now() - startTime) / 1000;
+            const remain = Math.max(0, searchTimeLimit - elapsed);
+            displays.time.innerText = remain.toFixed(1);
+            if (remain <= 0) {
+                clearInterval(timerInterval);
+                endGame(true);
+                displays.finalTime.innerText = `Found: ${searchScore}`;
+            }
+        }, 100);
+
+        renderSearchLevel();
+        switchScreen('game');
+    }
+
+    function renderSearchLevel() {
+        // Dynamic Grid Size based on score?
+        // Level 1: 5x5. Level 10: 10x10.
+        const size = Math.min(10, 5 + Math.floor(searchScore / 3));
+        displays.gameGrid.dataset.size = size;
+
+        let templateCols = `repeat(${size}, 1fr)`;
+        displays.gameGrid.style.gridTemplateColumns = templateCols;
+
+        // Assets
+        // Option A: Rotated Ts.
+        // Option B: Color difference.
+        // Let's go with Shape+Rotation using CSS.
+
+        const total = size * size;
+        searchTargetIndex = Math.floor(Math.random() * total);
+
+        displays.gameGrid.innerHTML = '';
+
+        // Distractor: "L" rotated. Target: "T".
+        // Or Distractor: "q". Target: "p".
+
+        for (let i = 0; i < total; i++) {
+            const div = document.createElement('div');
+            div.style.background = '#222';
+            div.style.border = '1px solid #333';
+            div.style.display = 'flex';
+            div.style.justifyContent = 'center';
+            div.style.alignItems = 'center';
+            div.style.fontSize = '24px';
+            div.style.cursor = 'pointer';
+
+            const span = document.createElement('span');
+
+            // Logic
+            if (i === searchTargetIndex) {
+                // Target
+                span.innerText = 'R'; // Find the R
+            } else {
+                // Distractor
+                span.innerText = 'P'; // Among the Ps
+                // Add rotation to make it harder?
+                if (Math.random() > 0.5) span.style.transform = 'rotate(180deg)';
+            }
+
+            div.appendChild(span);
+            div.onclick = () => handleSearchClick(i);
+            displays.gameGrid.appendChild(div);
+        }
+
+        displays.nextTarget.innerHTML = `FIND 'R' | Found: ${searchScore}`;
+    }
+
+    function handleSearchClick(i) {
+        if (i === searchTargetIndex) {
+            searchScore++;
+            renderSearchLevel();
+        } else {
+            // Penalty? -5 sec?
+            startTime -= 5000; // Actually this adds time elapsed, so reduces remaining. 
+            // wait, elapsed = now - startTime. If we decrease startTime, elapsed increases. Correct.
+            // Wait, startTime -= 5000 makes startTime smaller, so (now - startTime) bigger. Yes. 5s penalty.
+
+            document.body.style.backgroundColor = '#500';
+            setTimeout(() => { document.body.style.backgroundColor = ''; }, 100);
+        }
+    }
+
 });

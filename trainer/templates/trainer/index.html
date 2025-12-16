@@ -41,11 +41,16 @@
                                 <option value="stroop">Mode: Stroop Challenge</option>
                                 <option value="math">Mode: Math Matrix</option>
                                 <option value="greenlight">Mode: Green Light</option>
+                                <option value="nback">Mode: Dual N-Back</option>
+                                <option value="taskswitch">Mode: Task Switching</option>
+                                <option value="search">Mode: Visual Search</option>
                             </optgroup>
                             <optgroup label="Fun Games">
                                 <option value="rpg_battle">Mode: RPG Decision Battle</option>
                                 <option value="gauntlet">Mode: Finger Gauntlet</option>
                                 <option value="flappy">Mode: Flappy Icon</option>
+                            </optgroup>
+                            <optgroup label="Utility Tools">
                             </optgroup>
 
                         </select>
@@ -69,6 +74,9 @@
                             <button class="cat-btn" data-cat="chinese">Chi</button>
                             <button class="cat-btn" data-cat="norse">Norse</button>
                             <button class="cat-btn" data-cat="greek">Greek</button>
+                            <button class="cat-btn" data-cat="gems">💎</button>
+                            <button class="cat-btn" data-cat="fruits">🍎</button>
+                            <button class="cat-btn" data-cat="candies">🍬</button>
                         </div>
                         <div style="margin-top: 5px; font-size: 0.75em; color: #888;">
                             <input type="checkbox" id="multi-cat-check" style="vertical-align: middle;"> <label
@@ -178,6 +186,7 @@
                     style="position: absolute; top: 10px; right: 10px; z-index: 200; background: #f00; color: #fff; border: 2px solid #fff; padding: 5px 10px; cursor: pointer; font-family: monospace;">EXIT</button>
             </div>
 
+
             <div id="gauntlet-overlay" style="display: none;"></div>
 
             <!-- Player HUD -->
@@ -241,6 +250,8 @@
     </div>
 
     <script src="{% static 'js/game.js' %}"></script>
+    <script>
+    </script>
 </body>
 
 </html>
