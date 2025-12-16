@@ -70,13 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let greenSpawnInterval = null;
     let greenActiveTimeouts = {};
 
-    // Dual N-Back State
-    let nBackLevel = 2; // N=2 default
-    let nBackHistory = []; // { pos: 4, char: 'A' }
-    let nBackIndex = 0;
-    let nBackScore = 0;
-    let nBackActive = false;
-
     // Task Switching State
     let taskScore = 0; // Correct answers
     let taskLives = 3;
@@ -308,9 +301,6 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (currentMode === 'greenlight') {
                 isCustomMode = true;
                 startGreenGame();
-            } else if (currentMode === 'nback') {
-                isCustomMode = true;
-                startDualNBackGame();
             } else if (currentMode === 'taskswitch') {
                 isCustomMode = true;
                 startTaskSwitchingGame();
@@ -329,6 +319,9 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (currentMode === 'flappy') {
                 isCustomMode = true;
                 startFlappyGame();
+            } else if (currentMode === 'gravity') {
+                isCustomMode = true;
+                startGravityHarvestGame();
             } else if (currentMode === 'schulte_mem') {
                 isCustomMode = true;
                 shuffleOnClick = displays.shuffleCheck.checked;
@@ -3649,162 +3642,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 
-    // --- Dual N-Back Logic ---
-    function startDualNBackGame() {
-        nBackLevel = 2;
-        nBackHistory = [];
-        nBackIndex = 0;
-        nBackScore = 0;
-        nBackActive = true;
 
-        // Setup Grid (3x3 forced)
-        gridSize = 3;
-        const count = 9;
-
-        // Reset and clear grid
-        displays.gameGrid.dataset.size = 3;
-        displays.gameGrid.style.gridTemplateColumns = `repeat(3, 1fr)`;
-        displays.gameGrid.innerHTML = '';
-
-        for (let i = 0; i < 9; i++) {
-            const cell = document.createElement('div');
-            cell.className = 'icon-card';
-            cell.style.background = '#222';
-            cell.dataset.id = i;
-            displays.gameGrid.appendChild(cell);
-        }
-
-        // Add Controls UI below grid (clean up previous if any)
-        const oldControls = document.getElementById('nback-controls');
-        if (oldControls) oldControls.remove();
-
-        const ctrlDiv = document.createElement('div');
-        ctrlDiv.id = 'nback-controls';
-        ctrlDiv.style.marginTop = '20px';
-        ctrlDiv.style.display = 'flex';
-        ctrlDiv.style.gap = '20px';
-        ctrlDiv.style.justifyContent = 'center';
-        ctrlDiv.innerHTML = `
-            <button id="btn-pos-match" class="action-btn" style="background:#444;">Position Match (A)</button>
-            <button id="btn-audio-match" class="action-btn" style="background:#444;">Audio Match (L)</button>
-        `;
-        displays.gameGrid.parentNode.appendChild(ctrlDiv);
-
-        // Bind Events
-        // Note: Simple flag tracking for current turn input
-        let posClicked = false;
-        let audioClicked = false;
-
-        document.getElementById('btn-pos-match').onclick = () => { posClicked = true; checkNBackInput(true, false); };
-        document.getElementById('btn-audio-match').onclick = () => { audioClicked = true; checkNBackInput(false, true); };
-
-        // Keyboard Support
-        window.onkeydown = (e) => {
-            if (!nBackActive) return;
-            if (e.key.toLowerCase() === 'a') { posClicked = true; checkNBackInput(true, false); }
-            if (e.key.toLowerCase() === 'l') { audioClicked = true; checkNBackInput(false, true); }
-        };
-
-        const timerContainer = displays.time.parentElement;
-        timerContainer.innerHTML = `N-Back Level: <span style="color:#0f0;">${nBackLevel}</span> | Score: <span id="nback-score">0</span>`;
-
-        displays.nextTarget.innerHTML = '<span style="font-size:10px; color:#aaa;">Listen & Watch</span>';
-
-        switchScreen('game');
-        runNBackLoop();
-    }
-
-    function runNBackLoop() {
-        if (!nBackActive) return;
-
-        // 1. Generate new stimulus
-        const pos = Math.floor(Math.random() * 9);
-        const letters = ['C', 'H', 'L', 'Q', 'R', 'S', 'T', 'K'];
-        // Bias towards match? 
-        // 30% chance of position match, 30% audio, independent.
-        // Actually, pure random is fine for training, but ensuring some matches helps keep it engaging.
-        // For simplicity: Random.
-
-        const char = letters[Math.floor(Math.random() * letters.length)];
-
-        nBackHistory.push({ pos, char });
-
-        // 2. Visual Stimulus
-        const cells = displays.gameGrid.children;
-        for (let c of cells) c.style.background = '#222';
-
-        if (cells[pos]) {
-            cells[pos].style.background = '#00bdff';
-        }
-
-        // 3. Audio Stimulus
-        const u = new SpeechSynthesisUtterance(char);
-        u.rate = 1.5;
-        window.speechSynthesis.speak(u);
-
-        // 4. Update Score UI (for feedback)
-        const btnPos = document.getElementById('btn-pos-match');
-        const btnAud = document.getElementById('btn-audio-match');
-        if (btnPos) btnPos.style.background = '#444'; // Reset colors
-        if (btnAud) btnAud.style.background = '#444';
-
-        // 5. Wait for next turn
-        // Interval: 2.5s
-        setTimeout(() => {
-            if (!nBackActive) return;
-            // Clear Visual
-            if (cells[pos]) cells[pos].style.background = '#222';
-
-            // Verify Missed Matches (if user DIDN'T click but should have)
-            const targetIdx = nBackHistory.length - 1 - nBackLevel;
-            if (targetIdx >= 0) {
-                const target = nBackHistory[targetIdx];
-                const current = nBackHistory[nBackHistory.length - 1];
-
-                // If match existed and user didn't click -> Miss
-                // Current logic handles clicks immediately. 
-                // We just proceed.
-            }
-
-            // Loop
-            setTimeout(runNBackLoop, 500);
-        }, 2000);
-    }
-
-    function checkNBackInput(checkPos, checkAudio) {
-        const idx = nBackHistory.length - 1;
-        const targetIdx = idx - nBackLevel;
-        if (targetIdx < 0) return; // Warmup phase
-
-        const current = nBackHistory[idx];
-        const target = nBackHistory[targetIdx];
-
-        const btnPos = document.getElementById('btn-pos-match');
-        const btnAud = document.getElementById('btn-audio-match');
-
-        if (checkPos) {
-            if (current.pos === target.pos) {
-                nBackScore += 10;
-                if (btnPos) btnPos.style.background = '#0f0';
-            } else {
-                nBackScore -= 5;
-                if (btnPos) btnPos.style.background = '#f00';
-            }
-        }
-
-        if (checkAudio) {
-            if (current.char === target.char) {
-                nBackScore += 10;
-                if (btnAud) btnAud.style.background = '#0f0';
-            } else {
-                nBackScore -= 5;
-                if (btnAud) btnAud.style.background = '#f00';
-            }
-        }
-
-        const sEl = document.getElementById('nback-score');
-        if (sEl) sEl.innerText = nBackScore;
-    }
 
 
     // --- Task Switching Logic ---
@@ -4100,5 +3938,223 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => { document.body.style.backgroundColor = ''; }, 100);
         }
     }
+
+
+    // --- Gravity Harvest Mode (Kaboom.js) ---
+    window.startGravityHarvestGame = function () {
+        if (!modeSelect || modeSelect.value !== 'gravity') return;
+
+        displays.gameGrid.style.display = 'none';
+        const hud = document.getElementById('rpg-player-hud');
+        if (hud) hud.style.display = 'none';
+
+        const container = document.getElementById('gravity-container');
+        if (container) container.style.display = 'block';
+
+        switchScreen('game');
+
+        if (k) {
+            try { k.destroy(); } catch (e) { }
+        }
+
+        container.offsetHeight;
+        let width = container.clientWidth || window.innerWidth;
+        let height = container.clientHeight || window.innerHeight;
+
+        k = kaboom({
+            root: container,
+            width: width,
+            height: height,
+            background: [32, 32, 48],
+            global: false,
+            touchToMouse: true,
+            debug: false,
+        });
+
+        // Assets
+        // 1. Good Items (Selected Icons)
+        let goodSprites = [];
+        if (customSelectedIcons && customSelectedIcons.length > 0) {
+            customSelectedIcons.forEach((idx, i) => {
+                const content = getContentForIndex(idx, idx);
+                if (content.type === 'image') {
+                    const key = `good_${i}`;
+                    k.loadSprite(key, content.content);
+                    goodSprites.push(key);
+                }
+            });
+        }
+        // Fallback
+        if (goodSprites.length === 0) {
+            // grab some randoms
+            for (let i = 0; i < 5; i++) {
+                const cat = activeCategories[0] || 'numbers';
+                const id = Math.floor(Math.random() * 16); // Safe limit
+                const content = getDirectContent(cat, id);
+                if (content.type === 'image') {
+                    const key = `good_fb_${i}`;
+                    k.loadSprite(key, content.content);
+                    goodSprites.push(key);
+                }
+            }
+        }
+
+        // 2. Player Sprite (Basket or First Icon)
+        // Let's draw a simple basket-like shape or use the first icon tint
+        // k.loadSprite("basket", ...); 
+
+        k.scene("main", () => {
+            // Variables
+            let score = 0;
+            let lives = 3;
+            const SPEED = 400;
+
+            // UI
+            const scoreLabel = k.add([
+                k.text("0", { size: 48, font: "monospace" }),
+                k.pos(20, 20),
+                k.color(255, 255, 255)
+            ]);
+
+            const livesLabel = k.add([
+                k.text("Lives: 3", { size: 24 }),
+                k.pos(k.width() - 20, 20),
+                k.anchor("topright"),
+                k.color(255, 100, 100)
+            ]);
+
+            // Player
+            const player = k.add([
+                k.rect(60, 20),
+                k.pos(k.width() / 2, k.height() - 40),
+                k.anchor("center"),
+                k.area(),
+                k.body({ isStatic: true }),
+                k.color(0, 255, 213),
+                "player"
+            ]);
+
+            // Controls
+            k.onUpdate(() => {
+                player.pos.x = k.mousePos().x;
+                // Clamp
+                if (player.pos.x < 30) player.pos.x = 30;
+                if (player.pos.x > k.width() - 30) player.pos.x = k.width() - 30;
+            });
+
+            // Spawning
+            function spawnItem() {
+                const isBad = k.rand(0, 10) > 7; // 30% chance of bad
+                const x = k.rand(30, k.width() - 30);
+
+                if (isBad) {
+                    k.add([
+                        k.rect(40, 40),
+                        k.pos(x, -50),
+                        k.anchor("center"),
+                        k.area(),
+                        k.body(),
+                        k.move(k.vec2(0, 1), k.rand(200, 400)),
+                        k.color(255, 0, 0),
+                        k.offscreen({ destroy: true }),
+                        "bad"
+                    ]);
+                } else {
+                    let sprite = null;
+                    if (goodSprites.length > 0) sprite = k.choose(goodSprites);
+
+                    const comp = sprite ? k.sprite(sprite, { width: 40, height: 40 }) : k.rect(30, 30);
+
+                    k.add([
+                        comp,
+                        k.pos(x, -50),
+                        k.anchor("center"),
+                        k.area(),
+                        k.body(),
+                        k.move(k.vec2(0, 1), k.rand(150, 350)),
+                        k.color(255, 255, 255), // Tint neutral if sprite
+                        k.offscreen({ destroy: true }),
+                        "good"
+                    ]);
+                }
+
+                // Acceleration
+                const waitTime = k.rand(0.5, 1.5) / (1 + (score / 20));
+                k.wait(waitTime, spawnItem);
+            }
+
+            spawnItem();
+
+            // Collision
+            player.onCollide("good", (item) => {
+                k.destroy(item);
+                score++;
+                scoreLabel.text = score;
+                k.shake(2);
+                // Effect
+                k.add([
+                    k.text("+1", { size: 20 }),
+                    k.pos(player.pos.x, player.pos.y - 30),
+                    k.move(k.vec2(0, -1), 100),
+                    k.lifespan(0.5, { fade: 0.5 }),
+                    k.color(0, 255, 0)
+                ]);
+            });
+
+            player.onCollide("bad", (item) => {
+                k.destroy(item);
+                lives--;
+                livesLabel.text = `Lives: ${lives}`;
+                k.shake(20);
+                k.add([
+                    k.text("OUCH", { size: 20 }),
+                    k.pos(player.pos.x, player.pos.y - 30),
+                    k.move(k.vec2(0, -1), 100),
+                    k.lifespan(0.5, { fade: 0.5 }),
+                    k.color(255, 0, 0)
+                ]);
+
+                if (lives <= 0) {
+                    k.go("gameover", score);
+                }
+            });
+        });
+
+        k.scene("gameover", (score) => {
+            k.add([
+                k.text("GAME OVER", { size: 48 }),
+                k.pos(k.width() / 2, k.height() / 2 - 50),
+                k.anchor("center"),
+                k.color(255, 50, 50)
+            ]);
+            k.add([
+                k.text(`Score: ${score}`, { size: 32 }),
+                k.pos(k.width() / 2, k.height() / 2 + 20),
+                k.anchor("center"),
+                k.color(255, 255, 255)
+            ]);
+            k.add([
+                k.text("Tap to Retry", { size: 24 }),
+                k.pos(k.width() / 2, k.height() / 2 + 80),
+                k.anchor("center"),
+                k.color(200, 200, 200)
+            ]);
+            k.onClick(() => k.go("main"));
+        });
+
+        k.go("main");
+    };
+
+    window.closeGravityHarvest = function () {
+        const container = document.getElementById('gravity-container');
+        if (container) container.style.display = 'none';
+        if (k) {
+            try { k.quit(); } catch (e) { }
+            const canvas = container.querySelector('canvas');
+            if (canvas) canvas.remove();
+            k = null;
+        }
+        endGame(false);
+    };
 
 });

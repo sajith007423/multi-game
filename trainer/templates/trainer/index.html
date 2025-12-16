@@ -41,7 +41,6 @@
                                 <option value="stroop">Mode: Stroop Challenge</option>
                                 <option value="math">Mode: Math Matrix</option>
                                 <option value="greenlight">Mode: Green Light</option>
-                                <option value="nback">Mode: Dual N-Back</option>
                                 <option value="taskswitch">Mode: Task Switching</option>
                                 <option value="search">Mode: Visual Search</option>
                             </optgroup>
@@ -49,6 +48,7 @@
                                 <option value="rpg_battle">Mode: RPG Decision Battle</option>
                                 <option value="gauntlet">Mode: Finger Gauntlet</option>
                                 <option value="flappy">Mode: Flappy Icon</option>
+                                <option value="gravity">Mode: Gravity Harvest</option>
                             </optgroup>
                             <optgroup label="Utility Tools">
                             </optgroup>
@@ -183,6 +183,12 @@
             <!-- Flappy Icon Elements (Kaboom.js) -->
             <div id="flappy-container" class="full-screen-overlay" style="background: #70c5ce;">
                 <button onclick="closeFlappy()"
+                    style="position: absolute; top: 10px; right: 10px; z-index: 200; background: #f00; color: #fff; border: 2px solid #fff; padding: 5px 10px; cursor: pointer; font-family: monospace;">EXIT</button>
+            </div>
+
+            <!-- Gravity Harvest Elements (Kaboom.js) -->
+            <div id="gravity-container" class="full-screen-overlay" style="background: #202030;">
+                <button onclick="closeGravityHarvest()"
                     style="position: absolute; top: 10px; right: 10px; z-index: 200; background: #f00; color: #fff; border: 2px solid #fff; padding: 5px 10px; cursor: pointer; font-family: monospace;">EXIT</button>
             </div>
 
