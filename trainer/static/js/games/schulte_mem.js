@@ -136,10 +136,7 @@
         }
 
         // Timer Setup
-        GameApp.helpers.startTimer(() => {
-            const t = (Date.now() - GameApp.helpers.getStartTime()) / 1000;
-            if (displays.time) displays.time.innerText = t.toFixed(2);
-        }, 50);
+        GameApp.helpers.startTimer();
 
         if (displays.time) {
             const timerContainer = displays.time.parentElement;

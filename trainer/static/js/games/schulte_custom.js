@@ -20,7 +20,7 @@
         renderCustomSchulteGrid(boardItems);
 
         // Timer
-        GameApp.helpers.startTimer(updateTimerDisplay, 50);
+        GameApp.helpers.startTimer();
 
         // Reset Time Display
         const timerContainer = displays.time.parentElement;
@@ -31,12 +31,6 @@
         GameApp.helpers.switchScreen('game');
     }
 
-    function updateTimerDisplay() {
-        const GameApp = window.GameApp;
-        const displays = GameApp.displays;
-        const t = (Date.now() - GameApp.helpers.getStartTime()) / 1000;
-        if (displays.time) displays.time.innerText = t.toFixed(2);
-    }
 
     function renderCustomSchulteGrid(items) {
         const GameApp = window.GameApp;

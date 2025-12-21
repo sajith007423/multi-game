@@ -16,6 +16,19 @@ document.addEventListener('DOMContentLoaded', () => {
     let customSelectedIcons = [];
     let customContentMap = {};
 
+    // Expose for modules
+    window.customGridMask = customGridMask;
+    window.customSelectedIcons = customSelectedIcons;
+    window.gridSize = gridSize;
+
+    // We need to keep window properties in sync when these let variables change?
+    // Arrays/Objects are by reference, so mutating customGridMask is fine.
+    // But gridSize is primitive. We need a getter or update it manually.
+    // Better to just depend on the 'let' internally and update window.gridSize when it changes.
+    // Or just make them window properties directly?
+    // Given the structure, I'll update window.gridSize inside size click listener.
+
+
     // --- Game Logic State (Moved to Modules) ---
 
     // --- Config ---
@@ -75,6 +88,11 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', () => {
             const shape = btn.dataset.shape;
             applyShapePreset(shape);
+            // Sync references just in case (though array ref should be stable if not reassigned)
+            // Actually initCustomGridState reassigns customGridMask?
+            // Checking: initCustomGridState likely does customGridMask = ...
+            // If so, we need to update window.customGridMask there too.
+            // I'll assume initCustomGridState needs inspection.
         });
     });
 
@@ -106,7 +124,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 countNeeded = 5;
             } else if (mode === 'matrix' || mode === 'rotation') {
                 countNeeded = 5;
+            } else if (mode === 'mahjong') {
+                countNeeded = Math.ceil(activeCount / 2); // Pairs
             } else {
+
                 // Schulte / Standard / Others
                 countNeeded = activeCount;
             }
@@ -143,10 +164,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (btns.customStart) {
         btns.customStart.addEventListener('click', () => {
+            console.log("Start Button Clicked");
             const activeCount = customGridMask.filter(Boolean).length;
+            console.log("Active Count:", activeCount);
             if (activeCount === 0) return alert("Grid cannot be empty!");
 
             const currentMode = modeSelect ? modeSelect.value : 'memory';
+            console.log("Current Mode:", currentMode);
 
             // --- Reset Overlay States ---
             ['gravity-container', 'gauntlet-container', 'flappy-container', 'rpg-player-hud', 'rpg-player-sprite'].forEach(id => {
@@ -225,11 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (window.startHanoiGame) window.startHanoiGame();
                     else alert("Hanoi module not found!");
                 }
-                else if (currentMode === 'nback') {
-                    isCustomMode = true;
-                    if (window.startNBackGame) window.startNBackGame();
-                    else alert("N-Back module not found!");
-                }
+
                 else if (currentMode === 'taskswitch') startTaskSwitchingGame();
                 else if (currentMode === 'search') startVisualSearchGame();
 
@@ -347,15 +367,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderCustomGridEditor() {
         if (!displays.customEditor) return;
-        displays.customEditor.style.gridTemplateColumns = `repeat(${gridSize}, 32px)`;
+
+        // Dynamic cell sizing based on screen width
+        const screenWidth = window.innerWidth;
+        const cellPadding = screenWidth < 600 ? 5 : 10;
+        const availableWidth = Math.min(screenWidth - 40, 400); // Max 400px for editor
+        const cellSize = Math.floor((availableWidth - (gridSize * cellPadding)) / gridSize);
+        const finalCellSize = Math.min(Math.max(cellSize, 24), 48); // Bound between 24 and 48px
+
+        displays.customEditor.style.gridTemplateColumns = `repeat(${gridSize}, ${finalCellSize}px)`;
         displays.customEditor.style.width = 'fit-content';
         displays.customEditor.innerHTML = '';
 
         customGridMask.forEach((isActive, i) => {
             const cell = document.createElement('div');
             cell.className = `grid-editor-cell ${isActive ? 'active' : ''}`;
-            cell.style.width = '32px';
-            cell.style.height = '32px';
+            cell.style.width = `${finalCellSize}px`;
+            cell.style.height = `${finalCellSize}px`;
 
             cell.addEventListener('click', () => {
                 customGridMask[i] = !customGridMask[i];
@@ -600,8 +628,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (currentState === 'SETTINGS') {
             initCustomIconPool();
+            renderCustomGridEditor(); // Re-render editor on screen switch
         }
     }
+
+    // Handle resize
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            if (currentState === 'SETTINGS') {
+                renderCustomGridEditor();
+            }
+        }, 150);
+    });
 
     function getCategoryForIndex(index) {
         if (!activeCategories || activeCategories.length === 0) return 'animals';
@@ -675,12 +715,21 @@ document.addEventListener('DOMContentLoaded', () => {
             getContentForIndex: getContentForIndex,
             shuffleArray: shuffleArray,
             startTimer: (lb, interval = 50) => {
-                if (timerInterval) clearInterval(timerInterval);
+                if (timerInterval) cancelAnimationFrame(timerInterval);
                 startTime = Date.now();
-                timerInterval = setInterval(lb, interval);
+
+                const updateLoop = () => {
+                    const elapsed = (Date.now() - startTime) / 1000;
+                    if (displays.time) {
+                        displays.time.innerText = elapsed.toFixed(2);
+                    }
+                    if (lb) lb(elapsed);
+                    timerInterval = requestAnimationFrame(updateLoop);
+                };
+                timerInterval = requestAnimationFrame(updateLoop);
             },
             stopTimer: () => {
-                if (timerInterval) clearInterval(timerInterval);
+                if (timerInterval) cancelAnimationFrame(timerInterval);
                 timerInterval = null;
             },
             getStartTime: () => startTime
@@ -713,6 +762,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Visual Search Logic (Moved to games/visual_search.js) ---
+
+    // Helper for Modules to access assets & State
+    Object.defineProperty(window, 'gridSize', { get: () => gridSize });
+    Object.defineProperty(window, 'customGridMask', { get: () => customGridMask });
+    Object.defineProperty(window, 'customSelectedIcons', { get: () => customSelectedIcons });
+
+    // Expose UI helpers for modules
+    window.displays = displays;
+    window.switchScreen = switchScreen;
+
+    window.getGlobalAsset = function (index) {
+        if (!activeCategories || activeCategories.length === 0) return getDirectContent('animals', index);
+
+        const category = activeCategories[index % activeCategories.length];
+        const MAX_ASSETS = 16;
+        const assetId = Math.floor(index / activeCategories.length) % MAX_ASSETS;
+
+        return getDirectContent(category, assetId);
+    };
+
 
 
 

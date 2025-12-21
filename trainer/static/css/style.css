@@ -10,7 +10,8 @@
 body.light-theme {
     --bg-color: #f0f2f5;
     --panel-bg: #ffffff;
-    --accent: #2e86de; /* Softer blue for light mode */
+    --accent: #2e86de;
+    /* Softer blue for light mode */
     --text: #2f3542;
     --grid-gap: 10px;
     --icon-size: 64px;
@@ -23,21 +24,27 @@ body {
     margin: 0;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
+    /* Better for scrolling on mobile */
     min-height: 100vh;
+    padding: 10px;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 .container {
     text-align: center;
     width: 100%;
-    max-width: 800px;
+    max-width: 900px;
+    margin: 0 auto;
 }
 
 .game-title {
     color: var(--accent);
-    margin-bottom: 30px;
+    margin-bottom: clamp(15px, 4vw, 30px);
     text-shadow: 2px 2px #000;
-    font-size: 24px;
+    font-size: clamp(14px, 5vw, 24px);
+    line-height: 1.4;
 }
 
 .screen {
@@ -50,11 +57,14 @@ body {
 
 .panel {
     background: var(--panel-bg);
-    padding: 30px;
+    padding: clamp(15px, 4vw, 30px);
     border-radius: 10px;
     border: 2px solid #0f3460;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-    display: inline-block;
+    display: block;
+    /* Full width by default */
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .control-group {
@@ -155,6 +165,19 @@ button.active {
     }
 }
 
+.category-selector,
+.size-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 5px;
+}
+
+.cat-btn,
+.size-btn {
+    min-width: 60px;
+}
+
 .game-header {
     display: flex;
     justify-content: space-between;
@@ -184,66 +207,66 @@ input[type="checkbox"] {
 }
 
 /* Responsive Design */
-@media (max-width: 600px) {
-    .container {
-        padding: 5px;
-        width: 100%;
-        max-width: 100%;
+/* Responsive Design Improvements */
+@media (max-width: 768px) {
+    .control-row {
+        flex-direction: column !important;
+        gap: 15px !important;
+    }
+
+    .category-selector,
+    .size-selector {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .cat-btn,
+    .size-btn {
+        flex: 1 1 auto;
+        min-width: 70px;
+        margin: 0;
+        padding: 8px 4px;
+        font-size: 10px;
+    }
+
+    .panel {
+        padding: 15px;
+        border-radius: 5px;
     }
 
     .game-grid {
         gap: 5px;
     }
 
-    .icon-card {
-        width: 100%;
-        min-width: 40px;
-        /* Prevent too small */
-        height: auto;
-        aspect-ratio: 1;
-        border-width: 1px;
+    /* Grid editor on mobile */
+    #custom-grid-editor {
+        transform: scale(0.85);
+        transform-origin: center top;
     }
 
-    /* Adjust Icon Size Variable for Grid calculations if needed */
-    :root {
-        --icon-size: 48px;
+    /* Pool on mobile */
+    .icon-pool {
+        grid-template-columns: repeat(6, 1fr) !important;
     }
+}
 
+@media (max-width: 480px) {
     .game-title {
-        font-size: 18px;
-        margin-bottom: 15px;
-    }
-
-    .cat-btn,
-    .size-btn {
-        padding: 10px 12px;
-        /* larger touch target */
-        font-size: 10px;
-        margin: 3px;
-    }
-
-    .panel {
-        padding: 15px;
-        width: 100%;
-        box-sizing: border-box;
-        /* Critical for padding */
-        border-right: none;
-        border-left: none;
-        border-radius: 0;
-    }
-
-    .control-group {
-        margin: 15px 0;
-    }
-
-    /* Input/Select styling for mobile */
-    select,
-    input {
         font-size: 16px;
-        /* Stop iOS zoom */
-        padding: 8px;
-        width: 100%;
-        max-width: 100%;
+    }
+
+    .icon-pool {
+        grid-template-columns: repeat(4, 1fr) !important;
+    }
+
+    .battle-menu {
+        width: 100% !important;
+        margin-left: 0 !important;
+    }
+
+    .poke-textbox {
+        font-size: 10px;
     }
 }
 

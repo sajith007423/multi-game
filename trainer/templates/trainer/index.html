@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pixel Schulte Trainer</title>
+    <title>NeuroNexus</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -18,7 +18,7 @@
 <body>
     <div class="container">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h1 class="game-title" style="margin:0;">Pixel Schulte Trainer</h1>
+            <h1 class="game-title" style="margin:0;">NeuroNexus</h1>
             <div>
                 <button id="theme-btn" class="small-btn" onclick="toggleTheme()">🌙/☀️</button>
                 <!-- <button id="login-btn" class="small-btn" onclick="showLogin()">Login</button> -->
@@ -52,7 +52,6 @@
                                 <option value="matrix">Mode: Matrix Recall</option>
                                 <option value="rotation">Mode: Spatial Rotation</option>
                                 <option value="hanoi">Mode: Tower of Hanoi</option>
-                                <option value="nback">Mode: Dual N-Back</option>
                             </optgroup>
                             <optgroup label="Fun Games">
                                 <option value="rpg_battle">Mode: RPG Decision Battle</option>
@@ -115,9 +114,25 @@
                 <hr style="border-color: #444; margin-bottom: 20px;">
 
                 <!-- Advanced Editor & Pool -->
-                <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
-                    <!-- Left: Grid Editor -->
-                    <div id="setting-grid-editor" style="flex: 1; min-width: 300px;">
+                <div style="display: flex; flex-direction: column; gap: 20px; align-items: center;">
+                    <!-- Top: Icon Pool -->
+                    <div id="icon-panel-container" style="width: 100%; max-width: 800px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3>Icons <small style="font-size:0.6em; color:#aaa;">(Selected: <span
+                                        id="sel-icon-count">0</span> / Req: <span id="req-icon-count">0</span>)</small>
+                            </h3>
+                            <button id="random-select-btn"
+                                style="padding: 2px 8px; font-size: 10px; background: #e94560; border: none; color: white; cursor: pointer;">Randomize</button>
+                        </div>
+                        <div id="custom-icon-pool" class="icon-pool"
+                            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 5px; max-height: 250px; overflow-y: auto; margin-top: 5px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 5px;">
+                        </div>
+                    </div>
+
+                    <hr style="border: none; border-top: 1px solid #444; width: 100%;">
+
+                    <!-- Bottom: Grid Editor -->
+                    <div id="setting-grid-editor" style="width: 100%; max-width: 400px;">
                         <div
                             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                             <h3>Grid Shape</h3>
@@ -134,20 +149,6 @@
                             <button class="small-btn" data-shape="checker" title="Checkers">▦</button>
                         </div>
                         <div id="custom-grid-editor" class="game-grid" style="margin: 0 auto;"></div>
-                    </div>
-
-                    <!-- Right: Icon Pool -->
-                    <div id="icon-panel-container" style="flex: 1; min-width: 300px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <h3>Icons <small style="font-size:0.6em; color:#aaa;">(Selected: <span
-                                        id="sel-icon-count">0</span> / Req: <span id="req-icon-count">0</span>)</small>
-                            </h3>
-                            <button id="random-select-btn"
-                                style="padding: 2px 8px; font-size: 10px; background: #e94560; border: none; color: white; cursor: pointer;">Randomize</button>
-                        </div>
-                        <div id="custom-icon-pool" class="icon-pool"
-                            style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; max-height: 400px; overflow-y: auto; margin-top: 5px;">
-                        </div>
                     </div>
                 </div>
 
@@ -272,7 +273,6 @@
     <script src="{% static 'js/games/rotation.js' %}"></script>
     <script src="{% static 'js/games/gravity.js' %}"></script>
     <script src="{% static 'js/games/hanoi.js' %}"></script>
-    <script src="{% static 'js/games/nback.js' %}"></script>
     <script src="{% static 'js/games/rpg.js' %}"></script>
     <script src="{% static 'js/games/match3.js' %}"></script>
     <script src="{% static 'js/games/memory.js' %}"></script>
