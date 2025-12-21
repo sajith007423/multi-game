@@ -29,12 +29,17 @@
         <div id="main-menu" class="screen active">
             <!-- Main Game Settings Panel -->
             <div class="panel" style="max-width: 900px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2 style="margin:0;">Game Settings</h2>
-                    <div>
-                        <select id="custom-game-mode"
-                            style="background: #333; color: white; border: 1px solid #555; padding: 5px;">
+                <div style="margin-bottom: 20px;">
+                    <h2 style="margin:0; text-align: center;">Game Settings</h2>
+                </div>
 
+                <!-- Mode Selection -->
+                <div class="control-group" style="margin-bottom: 20px;">
+                    <label for="custom-game-mode"
+                        style="font-size: 0.9em; color: #aaa; display: block; margin-bottom: 5px;">Game Mode</label>
+                    <div style="display: flex; gap: 10px;">
+                        <select id="custom-game-mode"
+                            style="background: #333; color: white; border: 1px solid #555; padding: 10px; width: 100%; font-family: inherit; font-size: 0.9em;">
                             <optgroup label="Brain Games">
                                 <option value="standard">Mode: Schulte (Classic)</option>
                                 <option value="schulte_mem">Mode: Schulte (Memory)</option>
@@ -59,12 +64,9 @@
                                 <option value="flappy">Mode: Flappy Icon</option>
                                 <option value="gravity">Mode: Gravity Harvest</option>
                             </optgroup>
-                            <optgroup label="Utility Tools">
-                            </optgroup>
-
                         </select>
                         <input type="number" id="target-score" value="1000" min="100" step="100"
-                            style="width: 80px; background: #333; color: white; border: 1px solid #555; padding: 5px; margin-left: 10px; display: none;"
+                            style="width: 80px; background: #333; color: white; border: 1px solid #555; padding: 5px; display: none;"
                             placeholder="Target Score">
                     </div>
                 </div>
